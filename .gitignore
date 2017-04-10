@@ -1,0 +1,4 @@
+.trail
+.venv/
+*.*BAK
+.idea/
