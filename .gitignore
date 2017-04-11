@@ -1,4 +1,9 @@
-.trail
 .venv/
-*.*BAK
 .idea/
+dist/
+build/
+trail/__pycache__/
+trail.egg-info/
+*.*BAK
+.trail
+MANIFEST*

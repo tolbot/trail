@@ -1,18 +1,14 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-"""Keep track of your thoughts. Usage:
+"""trail.trail: provides entry point main()."""
 
-./trail.py enter some text here ...      # Save new trail, in current directory
-./trail.py -g enter some text here ...   # Save new "global" trail, found in ~/.trail
-./trail.py                               # Print current directory trails
-./trail.py -g                            # Print "global" trails.
-"""
 
 import sys      # for proper exit.
 import os       # for OS path checking.
 import datetime
 import calendar
 
+__version__ = "0.1"
 
 py3 = sys.version_info[0] > 2  # creates boolean value for test that Python major version > 2
 global_flag_used = False
@@ -84,32 +80,49 @@ def save_to_file(trail):
             tags_string = "global trails:"
         else:
             tags_string = get_tags_from_user_input()
-        with open(path_to_save, "w") as f:          # TODO : try: ... except IOError: ...
-            f.write("{}\n".format(tags_string))
-        print("New .trail file created in {}/.trail".format(os.getcwd()))
+        try:
+            with open(path_to_save, "w") as f:
+                f.write("{}\n".format(tags_string))
+        except IOError:
+            print("Could not create .trail file (make sure you are not in \"home\" dir)")   # Cannot have dir+file with SAME name, under same (home) dir!
+            return
+            # TODO : handle above case better.
+        else:
+            print("New .trail file created in {}/.trail".format(os.getcwd()))
 
     # append trail
     with open(path_to_save, "a") as f:
         f.write(trail.get_trail_string())
         f.write("\n")  # append newline at the end to avoid "partial lines" symbol in zsh;
+    # print trail, if success.
+    print(trail.get_trail_string())
+
+def print_global_trail_file():
+    global_trail_path_file = "{}/.trail/.trail".format(os.path.expanduser("~"))
+    try:
+        with open(global_trail_path_file, 'r') as f:
+            content = f.read()
+    except IOError:
+        content = "{} not found.".format(global_trail_path_file)
+    print(content)
 
 
 def print_local_trail_file():
-    with open('./.trail', 'r') as f:
-        c = f.read()
-    print(c)
-
-
-def print_global_trail_file():
-    with open("{}/.trail/.trail".format(os.path.expanduser("~")), 'r') as f:
-        c = f.read()
-    print(c)
+    try:
+        with open('./.trail', 'r') as f:
+            content = f.read()
+    except IOError:
+        print(".trail not found. - Displaying global .trail instead:")
+        print_global_trail_file()
+        return
+    else:
+        print(content)
 
 
 def main():
     global global_flag_used
 
-    if len(sys.argv) == 1:      # when excecuting just ./trail.py, with no args.
+    if len(sys.argv) == 1:      # when excecuting just ./__init__.py, with no args.
         print_local_trail_file()
         return
 
@@ -132,8 +145,3 @@ def main():
 
     save_to_file(trail)
 
-    print(trail.get_trail_string())
-
-
-if __name__ == '__main__':
-    sys.exit(main())
