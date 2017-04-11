@@ -8,7 +8,7 @@ import os       # for OS path checking.
 import datetime
 import calendar
 
-__version__ = "0.1"
+__version__ = "0.3"
 
 py3 = sys.version_info[0] > 2  # creates boolean value for test that Python major version > 2
 global_flag_used = False
