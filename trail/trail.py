@@ -8,7 +8,7 @@ import os       # for OS path checking.
 import datetime
 import calendar
 
-__version__ = "0.3"
+__version__ = "0.1.0"
 
 py3 = sys.version_info[0] > 2  # creates boolean value for test that Python major version > 2
 global_flag_used = False
@@ -97,6 +97,7 @@ def save_to_file(trail):
     # print trail, if success.
     print(trail.get_trail_string())
 
+
 def print_global_trail_file():
     global_trail_path_file = "{}/.trail/.trail".format(os.path.expanduser("~"))
     try:
@@ -144,4 +145,3 @@ def main():
     trail.content = trail_content_string
 
     save_to_file(trail)
-

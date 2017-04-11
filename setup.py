@@ -5,6 +5,7 @@
 
 import re
 from setuptools import setup
+import os
 
 
 version = re.search(
@@ -12,10 +13,13 @@ version = re.search(
     open('trail/trail.py').read(),
     re.M
 ).group(1)
+print("Got version: {}".format(version))
 
 with open("README.md", "rb") as f:
     long_descr = f.read().decode("utf-8")
 
+config_dir = "{}/.trail".format(os.path.expanduser("~"))  # is the home dir; "global" trails are kept here.
+print("config dir is: {}".format(config_dir))
 
 setup(
     name='trail',
@@ -23,6 +27,9 @@ setup(
     entry_points={
         "console_scripts": ['trail = trail.trail:main']
     },
+    data_files=[
+        (config_dir, [])
+    ],
     version=version,
     description='Keep track of your thoughts.',
     long_description=long_descr,
@@ -33,6 +40,3 @@ setup(
     keywords=['todo', 'productivity', 'notes'],  # arbitrary keywords
     classifiers=[],
 )
-
-# git tag 0.1 -m "Adds a tag so that we can put this on PyPI."
-# git push --tags origin master
