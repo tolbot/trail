@@ -6,4 +6,4 @@ trail/__pycache__/
 trail.egg-info/
 *.*BAK
 .trail
-
+*.pyc

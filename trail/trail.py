@@ -12,6 +12,7 @@ __version__ = "0.1.0"
 
 py3 = sys.version_info[0] > 2  # creates boolean value for test that Python major version > 2
 global_flag_used = False
+trail_db_path_file = "{}/.trail/.traildb".format(os.path.expanduser("~"))   # home dir.
 
 
 class Trail(object):
@@ -66,36 +67,79 @@ def get_tags_from_user_input():
         return raw_input(q)
 
 
+def trail_in_global_db(path_to_trail):
+    global trail_db_path_file
+
+    # Check global traildb
+    try:
+        with open(trail_db_path_file, "r") as f:
+            content = f.readlines()
+    except IOError:
+        print("Error accessing global .traildb in {}, for reading.".format(trail_db_path_file))
+        return False
+
+    trailsdb = [x.strip() for x in content]  # list; remove \n at end of each line.
+    if path_to_trail.strip() in trailsdb:
+        return True
+    else:
+        return False
+
+
+def write_trail_in_global_db(path_file_of_trail):
+    global trail_db_path_file
+
+    try:
+        with open(trail_db_path_file, "a") as f:
+            f.write(path_file_of_trail)
+            f.write("\n")
+    except IOError:
+        print("Error accessing global .traildb in {}, for appending.".format(trail_db_path_file))
+    else:
+        print(".traildb in {}, updated with {}.".format(trail_db_path_file, path_file_of_trail))
+
+
 def save_to_file(trail):
     global global_flag_used
 
+    # Determine whether it's a local or global trail.
     if global_flag_used:                    # TODO: these paths probaly won't work on windows.
-        path_to_save = "{}/.trail/.trail".format(os.path.expanduser("~"))   # home dir.
+        # .trail FILE, NOT .traildb !
+        path_file_to_save = "{}/.trail/.trail".format(os.path.expanduser("~"))  # home dir.
     else:
-        path_to_save = "./.trail"                                           # "current" dir.
+        # path_file_to_save = "./.trail"
+        #   will expand ".", so we can use same string in the traildb.
+        path_file_to_save = "{}/.trail".format(os.getcwd())                     # "current" dir.
 
     # If .trail doesn't exist, create it and insert header.
-    if not os.path.isfile(path_to_save):
+    if not os.path.isfile(path_file_to_save):
         if global_flag_used:
             tags_string = "global trails:"
         else:
             tags_string = get_tags_from_user_input()
         try:
-            with open(path_to_save, "w") as f:
+            with open(path_file_to_save, "w") as f:
                 f.write("{}\n".format(tags_string))
         except IOError:
-            print("Could not create .trail file (make sure you are not in \"home\" dir)")   # Cannot have dir+file with SAME name, under same (home) dir!
+            print("Cannot write .trail file {}, (make sure you are not in \"home\" dir).".format(path_file_to_save))
+            #   Usually, you cannot have dir+file with SAME name, under same (home) dir!
             return
             # TODO : handle above case better.
         else:
-            print("New .trail file created in {}/.trail".format(os.getcwd()))
+            print("New .trail file created, {}.".format(path_file_to_save))
 
-    # append trail
-    with open(path_to_save, "a") as f:
-        f.write(trail.get_trail_string())
-        f.write("\n")  # append newline at the end to avoid "partial lines" symbol in zsh;
+    # Append trail.
+    try:
+        with open(path_file_to_save, "a") as f:
+            f.write(trail.get_trail_string())
+            f.write("\n")  # append newline at the end to avoid "partial lines" symbol in zsh;
+    except IOError:
+        print("Cannot access {}, to append trail.".format(path_file_to_save))
     # print trail, if success.
     print(trail.get_trail_string())
+
+    # If needed, write to global traildb.
+    if not trail_in_global_db(path_file_to_save):
+        write_trail_in_global_db(path_file_to_save)
 
 
 def print_global_trail_file():
