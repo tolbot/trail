@@ -15,6 +15,42 @@ global_flag_used = False
 trail_db_path_file = "{}/.trail/.traildb".format(os.path.expanduser("~"))   # home dir.
 
 
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        if py3:
+            choice = input().lower()
+        else:
+            choice = raw_input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+
+
 class Trail(object):
     def __init__(self):
         self.created_timestamp = self._get_now_timestamp()  # eg: "Thu 25AUG17 04:16:53"
@@ -59,6 +95,7 @@ def get_trail_content_string_from_args():
 
 
 def get_tags_from_user_input():
+    global py3
     #                                         TODO: sanitise input.
     q = "Enter tags (:separated): "
     if py3:
@@ -67,7 +104,7 @@ def get_tags_from_user_input():
         return raw_input(q)
 
 
-def trail_in_global_db(path_to_trail):
+def trailpath_in_global_db(path_to_trail):
     global trail_db_path_file
 
     # Check global traildb
@@ -85,7 +122,7 @@ def trail_in_global_db(path_to_trail):
         return False
 
 
-def write_trail_in_global_db(path_file_of_trail):
+def write_trailpath_in_global_db(path_file_of_trail):
     global trail_db_path_file
 
     try:
@@ -96,6 +133,30 @@ def write_trail_in_global_db(path_file_of_trail):
         print("Error accessing global .traildb in {}, for appending.".format(trail_db_path_file))
     else:
         print(".traildb in {}, updated with {}.".format(trail_db_path_file, path_file_of_trail))
+
+
+def remove_trailpath_from_global_db(path_file):
+    global trail_db_path_file
+
+    # Read global .traildb.
+    try:
+        with open(trail_db_path_file, "r") as f:
+            lines = f.readlines()
+    except IOError:
+        print("Error accessing global .traildb in {}, for reading.".format(trail_db_path_file))
+        return
+    # Re-open to re-write from scratch, withour the selected path_file.
+    try:
+        with open(trail_db_path_file, "w") as f:
+            for line in lines:
+                if line.strip() != path_file.strip():
+                    f.write(line.strip())
+                    f.write("\n")
+    except IOError:
+        print("Error accessing global .traildb in {}, for writing.".format(trail_db_path_file))
+        return
+    else:
+        print(".traildb in {}, updated to remove {}.".format(trail_db_path_file, path_file.strip()))
 
 
 def save_to_file(trail):
@@ -138,8 +199,8 @@ def save_to_file(trail):
     print(trail.get_trail_string())
 
     # If needed, write to global traildb.
-    if not trail_in_global_db(path_file_to_save):
-        write_trail_in_global_db(path_file_to_save)
+    if not trailpath_in_global_db(path_file_to_save):
+        write_trailpath_in_global_db(path_file_to_save)
 
 
 def print_global_trail_file():
@@ -164,6 +225,32 @@ def print_local_trail_file():
         print(content)
 
 
+def delete_local_trail():
+    global trail_db_path_file
+
+    path_file_to_delete = "{}/.trail".format(os.getcwd())  # "current" dir.
+
+    # if .trail file exists ...    TODO: handle case where ~/.trail is a directory.
+    if os.path.isfile(path_file_to_delete):
+        if query_yes_no("Are you sure you want to delete {} ?".format(path_file_to_delete), default="no"):  # True == "yes"
+            # Delete local .trail file.
+            try:
+                os.remove(path_file_to_delete)
+            except IOError:
+                print("Cannot delete {}".format(path_file_to_delete))
+                return
+            else:
+                print("{} deleted.".format(path_file_to_delete))
+            # Delete appropriate entry from .traildb.
+            if trailpath_in_global_db(path_file_to_delete):
+                remove_trailpath_from_global_db(path_file_to_delete)
+        else:
+            print("Aborted.")
+            return
+    else:
+        print(".trail not found in {}.".format(path_file_to_delete))
+
+
 def main():
     global global_flag_used
 
@@ -175,6 +262,14 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "-g":
             global_flag_used = True
+        elif sys.argv[1] == "-D":
+            # Check if ONLY -D is used.
+            if len(sys.argv) == 2:
+                delete_local_trail()
+                return
+            else:
+                print("\"-D\" does not accept additional options." )
+                return
 
     # Check if ONLY -g is used.
     if global_flag_used and len(sys.argv) == 2:
