@@ -232,7 +232,8 @@ def delete_local_trail():
 
     # if .trail file exists ...    TODO: handle case where ~/.trail is a directory.
     if os.path.isfile(path_file_to_delete):
-        if query_yes_no("Are you sure you want to delete {} ?".format(path_file_to_delete), default="no"):  # True == "yes"
+        if query_yes_no("Are you sure you want to delete {} ?".format(path_file_to_delete), default="no"):
+            #   True == "yes"
             # Delete local .trail file.
             try:
                 os.remove(path_file_to_delete)

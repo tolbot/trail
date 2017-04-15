@@ -31,3 +31,7 @@ Print "global" trails.
 ```
 $ trail -g
 ```
+Delete all trails from current directory.
+```
+$ trail -D
+```
