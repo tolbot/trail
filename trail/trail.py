@@ -252,6 +252,29 @@ def delete_local_trail():
         print(".trail not found in {}.".format(path_file_to_delete))
 
 
+def print_help():   # TODO: make this more dynamic.
+    helptext = """ trail help:
+
+Save a new trail, in current directory (creates a ".trail" file), for example:
+    $ trail enter some text here ...
+    $ trail "Use quotes if your trail contains weird-f@r-bash characters!"
+    $ trail "is inspired by https://github.com/jonromero/trail "
+
+Print trails found in current directory .trail file.
+    $ trail
+
+Save a new "global" trail (in "~/.trail/.trail", requires dir to exist)
+    $ trail -g enter some text here ...
+
+Print "global" trails.
+    $ trail -g
+
+Delete all trails from current directory.
+    $ trail -D
+"""
+    print(helptext)
+
+
 def main():
     global global_flag_used
 
@@ -272,6 +295,14 @@ def main():
             elif len(sys.argv) > 2:
                 print("\"-D\" does not accept additional options.")
                 return
+        elif sys.argv[1] == "-h" or sys.argv[1] == "--help":
+            if len(sys.argv) == 2:  # if ONLY -h
+                print_help()
+                return
+            elif len(sys.argv) > 2:
+                print("\"-h\" does not accept additional options.")
+                return
+
         # rest of options below:
         trail_content_string = get_trail_content_string_from_args()
 
