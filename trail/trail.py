@@ -97,7 +97,7 @@ def get_trail_content_string_from_args():
 def get_tags_from_user_input():
     global py3
     #                                         TODO: sanitise input.
-    q = "Enter tags (:separated): "
+    q = "Enter some tags, separated by \":\" (optional) > "
     if py3:
         return input(q)
     else:
@@ -255,33 +255,31 @@ def delete_local_trail():
 def main():
     global global_flag_used
 
-    if len(sys.argv) == 1:      # when excecuting just ./__init__.py, with no args.
+    # TODO: argparse & argcomplete is for the future.
+    if len(sys.argv) == 1:      # when excecuting just ./trail-runner.py, without any args.
         print_local_trail_file()
         return
-
-    # Check if -g is used.
-    if len(sys.argv) > 1:
+    elif len(sys.argv) > 1:     # when at least one argument is given.
         if sys.argv[1] == "-g":
             global_flag_used = True
+            if len(sys.argv) == 2:  # if ONLY -g
+                print_global_trail_file()
+                return
         elif sys.argv[1] == "-D":
-            # Check if ONLY -D is used.
-            if len(sys.argv) == 2:
+            if len(sys.argv) == 2:  # if ONLY -D
                 delete_local_trail()
                 return
-            else:
-                print("\"-D\" does not accept additional options." )
+            elif len(sys.argv) > 2:
+                print("\"-D\" does not accept additional options.")
                 return
+        # rest of options below:
+        trail_content_string = get_trail_content_string_from_args()
 
-    # Check if ONLY -g is used.
-    if global_flag_used and len(sys.argv) == 2:
-        print_global_trail_file()
+        # Create a new trail
+        trail = Trail()
+        trail.content = trail_content_string
+
+        save_to_file(trail)
+    else:                       # should be unreachable.
+        print("Unknown Error.")
         return
-
-    # Rest of use cases ...
-    trail_content_string = get_trail_content_string_from_args()
-
-    # Create a new trail
-    trail = Trail()
-    trail.content = trail_content_string
-
-    save_to_file(trail)
